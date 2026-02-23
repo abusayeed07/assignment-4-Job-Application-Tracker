@@ -24,64 +24,92 @@ function updateCounts() {
 
     // Update section job count based on current tab
     let visibleJobs = [];
-    if (currentTab === 'all') visibleJobs = document.querySelectorAll('.job-card');
-    else if (currentTab === 'interview') visibleJobs = document.querySelectorAll('.job-card[data-status="INTERVIEW"]');
-    else if (currentTab === 'rejected') visibleJobs = document.querySelectorAll('.job-card[data-status="REJECTED"]');
 
-    sectionJobCount.textContent = visibleJobs.length + (visibleJobs.length === 1 ? ' job' : ' jobs');
+    if (currentTab === 'all') {
+        // Get all job cards
+        visibleJobs = document.querySelectorAll('.job-card');
+    }
+    else if (currentTab === 'interview') {
+        // Get only interview jobs
+        visibleJobs = document.querySelectorAll('.job-card[data-status="INTERVIEW"]');
+    }
+    else if (currentTab === 'rejected') {
+        // Get only rejected jobs
+        visibleJobs = document.querySelectorAll('.job-card[data-status="REJECTED"]');
+    }
+
+    // Get the number of jobs found
+    let numberOfJobs = visibleJobs.length;
+
+    let jobWord = 'jobs';
+    if (numberOfJobs === 1) {
+        jobWord = 'job';
+    }
+
+    // Update the display
+    sectionJobCount.textContent = numberOfJobs + ' ' + jobWord;
 }
 
 // Function to filter jobs by tab
 function filterJobs(tab) {
     const jobs = document.querySelectorAll('.job-card');
-
+    
     jobs.forEach(job => {
+        // Get the status of this job (INTERVIEW, REJECTED, or NOT APPLIED)
+        const jobStatus = job.dataset.status;
+        
         if (tab === 'all') {
             job.style.display = 'block';
-        } else if (tab === 'interview') {
-            if (job.dataset.status === 'INTERVIEW') {
+        }
+        else if (tab === 'interview') {
+            if (jobStatus === 'INTERVIEW') {
                 job.style.display = 'block';
             } else {
                 job.style.display = 'none';
             }
-        } else if (tab === 'rejected') {
-            if (job.dataset.status === 'REJECTED') {
-                job.style.display = 'block';
+        }
+        else if (tab === 'rejected') {
+            // Show only REJECTED jobs
+            if (jobStatus === 'REJECTED') {
+                job.style.display = 'block';  // Show
             } else {
-                job.style.display = 'none';
+                job.style.display = 'none';    // Hide
             }
         }
     });
-
-    // Check if no jobs visible in current tab
-    const visibleJobs = Array.from(document.querySelectorAll('.job-card')).filter(job =>
-        window.getComputedStyle(job).display !== 'none'
-    );
-    const emptyMessage = document.getElementById('empty-message');
-
-    if (visibleJobs.length === 0) {
-        if (!emptyMessage) {
-            const container = document.getElementById('jobs-container');
-            const msg = document.createElement('div');
-            msg.id = 'empty-message';
-            msg.className = 'flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-gray-200';
-            msg.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <h3 class="text-2xl font-semibold text-gray-700 mt-4">No jobs available</h3>
-            <p class="text-gray-500 text-base mt-2">No applications with "${tab}" status</p>
-          `;
-            container.appendChild(msg);
+    
+    // Count how many jobs are visible
+    let visibleCount = 0;
+    jobs.forEach(job => {
+        if (job.style.display !== 'none') {
+            visibleCount++;
         }
+    });
+    
+    // Show "No jobs" message if needed
+    const container = document.getElementById('jobs-container');
+    const oldMessage = document.getElementById('empty-message');
+    
+    if (visibleCount === 0) {
+        // Remove old message if exists
+        if (oldMessage) oldMessage.remove();
+        
+        // Create new message
+        const message = document.createElement('div');
+        message.id = 'empty-message';
+        message.className = 'text-center py-16 bg-white rounded-xl border border-gray-200';
+        message.innerHTML = `
+            <p class="text-2xl text-gray-400 mb-2">📭</p>
+            <h3 class="text-xl font-semibold text-gray-700">No jobs available</h3>
+            <p class="text-gray-500 mt-2">No applications with "${tab}" status</p>
+        `;
+        container.appendChild(message);
     } else {
-        if (emptyMessage) {
-            emptyMessage.remove();
-        }
+        // Remove message if jobs exist
+        if (oldMessage) oldMessage.remove();
     }
-
+    
+    // Update the job count display
     updateCounts();
 }
 
