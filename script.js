@@ -1,188 +1,215 @@
-// Get all job cards
-const jobCards = document.querySelectorAll('.job-card');
-const totalSpan = document.getElementById('total-count');
-const interviewSpan = document.getElementById('interview-count');
-const rejectedSpan = document.getElementById('rejected-count');
-const sectionJobCount = document.getElementById('section-job-count');
+// Get all the elements we need from the page
+const totalDisplay = document.getElementById('total-count');
+const interviewDisplay = document.getElementById('interview-count');
+const rejectedDisplay = document.getElementById('rejected-count');
+const jobCountDisplay = document.getElementById('section-job-count');
 
-const tabAll = document.getElementById('tab-all');
-const tabInterview = document.getElementById('tab-interview');
-const tabRejected = document.getElementById('tab-rejected');
+const allTab = document.getElementById('tab-all');
+const interviewTab = document.getElementById('tab-interview');
+const rejectedTab = document.getElementById('tab-rejected');
 
 let currentTab = 'all';
 
-// Function to update counts
-function updateCounts() {
-    const jobs = document.querySelectorAll('.job-card');
-    const total = jobs.length;
-    const interview = document.querySelectorAll('.job-card[data-status="INTERVIEW"]').length;
-    const rejected = document.querySelectorAll('.job-card[data-status="REJECTED"]').length;
-
-    totalSpan.textContent = total;
-    interviewSpan.textContent = interview;
-    rejectedSpan.textContent = rejected;
-
-    // Update section job count based on current tab
-    let visibleJobs = [];
-
-    if (currentTab === 'all') {
-        // Get all job cards
-        visibleJobs = document.querySelectorAll('.job-card');
+function updateNumbers() {
+    // Get all jobs
+    const allJobs = document.querySelectorAll('.job-card');
+    const totalJobs = allJobs.length;
+    const interviewJobs = document.querySelectorAll('.job-card[data-status="INTERVIEW"]').length;
+    const rejectedJobs = document.querySelectorAll('.job-card[data-status="REJECTED"]').length;
+    
+    // Update the top boxes
+    totalDisplay.innerText = totalJobs;
+    interviewDisplay.innerText = interviewJobs;
+    rejectedDisplay.innerText = rejectedJobs;
+    
+    // Count how many jobs are visible right now
+    let visibleCount = 0;
+    for (let job of allJobs) {
+        const styles = window.getComputedStyle(job);
+        if (styles.display !== 'none') {
+            visibleCount++;
+        }
     }
-    else if (currentTab === 'interview') {
-        // Get only interview jobs
-        visibleJobs = document.querySelectorAll('.job-card[data-status="INTERVIEW"]');
+    
+    if (visibleCount === 1) {
+        jobCountDisplay.innerText = '1 job';
+    } else {
+        jobCountDisplay.innerText = visibleCount + ' jobs';
     }
-    else if (currentTab === 'rejected') {
-        // Get only rejected jobs
-        visibleJobs = document.querySelectorAll('.job-card[data-status="REJECTED"]');
-    }
-
-    // Get the number of jobs found
-    let numberOfJobs = visibleJobs.length;
-
-    let jobWord = 'jobs';
-    if (numberOfJobs === 1) {
-        jobWord = 'job';
-    }
-
-    // Update the display
-    sectionJobCount.textContent = numberOfJobs + ' ' + jobWord;
 }
 
-// Function to filter jobs by tab
-function filterJobs(tab) {
-    const jobs = document.querySelectorAll('.job-card');
-
-    jobs.forEach(job => {
-        // Get the status of this job (INTERVIEW, REJECTED, or NOT APPLIED)
-        const jobStatus = job.dataset.status;
-
-        if (tab === 'all') {
+function showJobs(tabName) {
+    // Get all job cards
+    const allJobs = document.querySelectorAll('.job-card');
+    
+    // Loop through each job one by one
+    for (let job of allJobs) {
+        // Get this job's status (INTERVIEW, REJECTED, or NOT APPLIED)
+        const status = job.dataset.status;
+    
+        if (tabName === 'all') {
+            // Show ALL jobs
             job.style.display = 'block';
         }
-        else if (tab === 'interview') {
-            if (jobStatus === 'INTERVIEW') {
+        else if (tabName === 'interview') {
+            // Show ONLY interview jobs
+            if (status === 'INTERVIEW') {
                 job.style.display = 'block';
             } else {
                 job.style.display = 'none';
             }
         }
-        else if (tab === 'rejected') {
-            // Show only REJECTED jobs
-            if (jobStatus === 'REJECTED') {
-                job.style.display = 'block';  // Show
+        else if (tabName === 'rejected') {
+            // Show ONLY rejected jobs
+            if (status === 'REJECTED') {
+                job.style.display = 'block';
             } else {
-                job.style.display = 'none';    // Hide
+                job.style.display = 'none';
             }
         }
-    });
-
-    // Count how many jobs are currently visible
-    let visibleCount = 0;
-    const jobsForVisibility = document.querySelectorAll('.job-card');
-    for (const job of jobsForVisibility) {
-        const style = window.getComputedStyle(job);
-        if (style.display !== 'none') {
-            visibleCount++;
+    }
+    
+    // Check if there are any visible jobs
+    let anyVisible = false;
+    for (let job of allJobs) {
+        const styles = window.getComputedStyle(job);
+        if (styles.display !== 'none') {
+            anyVisible = true;
+            break;
         }
     }
-
-    // Show "No jobs" message if needed
+    
+    // Show "No jobs" message if nothing is visible
     const container = document.getElementById('jobs-container');
     const oldMessage = document.getElementById('empty-message');
-
-    if (visibleCount === 0) {
-        // Remove old message if exists
-        if (oldMessage) oldMessage.remove();
-
+    
+    if (anyVisible === false) {
+        // Remove old message if it exists
+        if (oldMessage) {
+            oldMessage.remove();
+        }
+        
         // Create new message
-        const message = document.createElement('div');
-        message.id = 'empty-message';
-        message.className = 'text-center py-16 bg-white rounded-xl border border-gray-200';
-        message.innerHTML = `
-            <p class="text-2xl text-gray-400 mb-2">📭</p>
+        const messageDiv = document.createElement('div');
+        messageDiv.id = 'empty-message';
+        messageDiv.className = 'text-center py-16 bg-white rounded-xl border border-gray-200';
+        messageDiv.innerHTML = `
+            <p class="text-4xl text-gray-400 mb-4">📭</p>
             <h3 class="text-xl font-semibold text-gray-700">No jobs available</h3>
-            <p class="text-gray-500 mt-2">No applications with "${tab}" status</p>
+            <p class="text-gray-500 mt-2">No "${tabName}" jobs found</p>
         `;
-        container.appendChild(message);
+        container.appendChild(messageDiv);
     } else {
         // Remove message if jobs exist
-        if (oldMessage) oldMessage.remove();
+        if (oldMessage) {
+            oldMessage.remove();
+        }
     }
-
-    // Update the job count display
-    updateCounts();
+    
+    // Update all numbers
+    updateNumbers();
 }
 
-// Function to update job status
-function updateJobStatus(card, newStatus) {
-    card.dataset.status = newStatus;
-
-    // Update status badge
-    const badge = card.querySelector('.status-badge');
+function changeStatus(jobCard, newStatus) {
+    // Update the status in the data attribute
+    jobCard.dataset.status = newStatus;
+    
+    // Find and update the badge text
+    const badge = jobCard.querySelector('.status-badge');
     if (badge) {
-        badge.textContent = newStatus;
-        // Update badge styling
+        badge.innerText = newStatus;
+        
+        // Change badge color based on status
         if (newStatus === 'INTERVIEW') {
-            badge.className = 'inline-block bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded border border-green-300 status-badge';
-        } else if (newStatus === 'REJECTED') {
-            badge.className = 'inline-block bg-red-50 text-red-700 text-xs font-semibold px-3 py-1.5 rounded border border-red-300 status-badge';
-        } else if (newStatus === 'NOT APPLIED') {
-            badge.className = 'inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded border border-blue-300 status-badge';
+            badge.className = 'bg-green-100 text-green-700 text-xs font-semibold px-3 py-1.5 rounded border border-green-300 status-badge';
+        } 
+        else if (newStatus === 'REJECTED') {
+            badge.className = 'bg-red-100 text-red-700 text-xs font-semibold px-3 py-1.5 rounded border border-red-300 status-badge';
+        }
+        else if (newStatus === 'NOT APPLIED') {
+            badge.className = 'bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded border border-gray-300 status-badge';
         }
     }
-
-    filterJobs(currentTab);
+    
+    // Refresh the current tab
+    showJobs(currentTab);
 }
 
-// Single event listener for all buttons using event delegation
-document.getElementById('jobs-container').addEventListener('click', function(e) {
-    const card = e.target.closest('.job-card');
-    if (!card) return;
+const jobsContainer = document.getElementById('jobs-container');
 
-    if (e.target.classList.contains('interview-btn')) {
-        updateJobStatus(card, 'INTERVIEW');
+jobsContainer.addEventListener('click', function(event) {
+    // Find which job card was clicked
+    const jobCard = event.target.closest('.job-card');
+    
+    // If click wasn't on a job card, do nothing
+    if (!jobCard) {
+        return;
     }
-
-    if (e.target.classList.contains('rejected-btn')) {
-        updateJobStatus(card, 'REJECTED');
+    
+    // Check if INTERVIEW button was clicked
+    if (event.target.classList.contains('interview-btn')) {
+        changeStatus(jobCard, 'INTERVIEW');
     }
-
-    if (e.target.closest('.delete-btn')) {
-        // Show confirmation alert
-        if (confirm('Are you sure you want to delete this job?')) {
-            card.remove();
-            filterJobs(currentTab);
-            updateCounts();
+    
+    // Check if REJECTED button was clicked
+    if (event.target.classList.contains('rejected-btn')) {
+        changeStatus(jobCard, 'REJECTED');
+    }
+    
+    // Check if DELETE button was clicked
+    if (event.target.closest('.delete-btn')) {
+        // Ask user to confirm
+        const userConfirmed = confirm('Delete this job?');
+        
+        if (userConfirmed) {
+            // Remove the job card
+            jobCard.remove();
+            // Refresh the current tab
+            showJobs(currentTab);
         }
     }
 });
 
-// Tab click handlers
-tabAll.addEventListener('click', function() {
+// ALL tab clicked
+allTab.addEventListener('click', function() {
+    // Update which tab is active
     currentTab = 'all';
-    tabAll.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
-    tabInterview.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
-    tabRejected.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
-    filterJobs('all');
+    
+    // Change button colors
+    allTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
+    interviewTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500';
+    rejectedTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500';
+    
+    // Show all jobs
+    showJobs('all');
 });
 
-tabInterview.addEventListener('click', function() {
+// INTERVIEW tab clicked
+interviewTab.addEventListener('click', function() {
+    // Update which tab is active
     currentTab = 'interview';
-    tabAll.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
-    tabInterview.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
-    tabRejected.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
-    filterJobs('interview');
+    
+    // Change button colors
+    allTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500';
+    interviewTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
+    rejectedTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500';
+    
+    // Show only interview jobs
+    showJobs('interview');
 });
 
-tabRejected.addEventListener('click', () => {
+// REJECTED tab clicked
+rejectedTab.addEventListener('click', function() {
+    // Update which tab is active
     currentTab = 'rejected';
-    tabAll.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
-    tabInterview.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
-    tabRejected.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
-    filterJobs('rejected');
+    
+    // Change button colors
+    allTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500';
+    interviewTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500';
+    rejectedTab.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
+    
+    // Show only rejected jobs
+    showJobs('rejected');
 });
 
-// Initial counts
-updateCounts();
+updateNumbers();
