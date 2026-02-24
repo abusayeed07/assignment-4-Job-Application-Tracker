@@ -78,13 +78,15 @@ function filterJobs(tab) {
         }
     });
 
-    // Count how many jobs are visible
+    // Count how many jobs are currently visible
     let visibleCount = 0;
-    jobs.forEach(job => {
-        if (job.style.display !== 'none') {
+    const jobsForVisibility = document.querySelectorAll('.job-card');
+    for (const job of jobsForVisibility) {
+        const style = window.getComputedStyle(job);
+        if (style.display !== 'none') {
             visibleCount++;
         }
-    });
+    }
 
     // Show "No jobs" message if needed
     const container = document.getElementById('jobs-container');
@@ -135,7 +137,7 @@ function updateJobStatus(card, newStatus) {
 }
 
 // Single event listener for all buttons using event delegation
-document.getElementById('jobs-container').addEventListener('click', (e) => {
+document.getElementById('jobs-container').addEventListener('click', function(e) {
     const card = e.target.closest('.job-card');
     if (!card) return;
 
@@ -158,7 +160,7 @@ document.getElementById('jobs-container').addEventListener('click', (e) => {
 });
 
 // Tab click handlers
-tabAll.addEventListener('click', () => {
+tabAll.addEventListener('click', function() {
     currentTab = 'all';
     tabAll.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
     tabInterview.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
@@ -166,7 +168,7 @@ tabAll.addEventListener('click', () => {
     filterJobs('all');
 });
 
-tabInterview.addEventListener('click', () => {
+tabInterview.addEventListener('click', function() {
     currentTab = 'interview';
     tabAll.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800';
     tabInterview.className = 'px-6 py-2.5 text-sm font-medium rounded-full bg-gray-200 text-gray-800';
