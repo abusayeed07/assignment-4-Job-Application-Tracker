@@ -53,11 +53,11 @@ function updateCounts() {
 // Function to filter jobs by tab
 function filterJobs(tab) {
     const jobs = document.querySelectorAll('.job-card');
-    
+
     jobs.forEach(job => {
         // Get the status of this job (INTERVIEW, REJECTED, or NOT APPLIED)
         const jobStatus = job.dataset.status;
-        
+
         if (tab === 'all') {
             job.style.display = 'block';
         }
@@ -77,7 +77,7 @@ function filterJobs(tab) {
             }
         }
     });
-    
+
     // Count how many jobs are visible
     let visibleCount = 0;
     jobs.forEach(job => {
@@ -85,15 +85,15 @@ function filterJobs(tab) {
             visibleCount++;
         }
     });
-    
+
     // Show "No jobs" message if needed
     const container = document.getElementById('jobs-container');
     const oldMessage = document.getElementById('empty-message');
-    
+
     if (visibleCount === 0) {
         // Remove old message if exists
         if (oldMessage) oldMessage.remove();
-        
+
         // Create new message
         const message = document.createElement('div');
         message.id = 'empty-message';
@@ -108,7 +108,7 @@ function filterJobs(tab) {
         // Remove message if jobs exist
         if (oldMessage) oldMessage.remove();
     }
-    
+
     // Update the job count display
     updateCounts();
 }
@@ -134,35 +134,27 @@ function updateJobStatus(card, newStatus) {
     filterJobs(currentTab);
 }
 
-// Add event listeners to all interview buttons
-document.querySelectorAll('.interview-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const id = e.currentTarget.dataset.id;
-        const card = document.querySelector(`.job-card[data-id="${id}"]`);
+// Single event listener for all buttons using event delegation
+document.getElementById('jobs-container').addEventListener('click', (e) => {
+    const card = e.target.closest('.job-card');
+    if (!card) return;
+
+    if (e.target.classList.contains('interview-btn')) {
         updateJobStatus(card, 'INTERVIEW');
-    });
-});
+    }
 
-// Add event listeners to all rejected buttons
-document.querySelectorAll('.rejected-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const id = e.currentTarget.dataset.id;
-        const card = document.querySelector(`.job-card[data-id="${id}"]`);
+    if (e.target.classList.contains('rejected-btn')) {
         updateJobStatus(card, 'REJECTED');
-    });
-});
+    }
 
-// Add event listeners to all delete buttons
-document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const id = e.currentTarget.dataset.id;
-        const card = document.querySelector(`.job-card[data-id="${id}"]`);
-        card.remove();
-
-        // Check if empty message needs to be shown
-        filterJobs(currentTab);
-        updateCounts();
-    });
+    if (e.target.closest('.delete-btn')) {
+        // Show confirmation alert
+        if (confirm('Are you sure you want to delete this job?')) {
+            card.remove();
+            filterJobs(currentTab);
+            updateCounts();
+        }
+    }
 });
 
 // Tab click handlers
